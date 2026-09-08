@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - api
+      - frontend
+
+  api:
+    build: ./backend
+    restart: always
+    expose:
+      - "8000"
+    environment:
+      - DATABASE_URL=postgresql://faceuser:facepass@postgres:5432/facesaas
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY:-super-secret-key-change-in-production}
+      - UPLOAD_DIR=/app/uploads
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    volumes:
+      - face_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:8000}
+    depends_on:
+      - api
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=faceuser
+      - POSTGRES_PASSWORD=facepass
+      - POSTGRES_DB=facesaas
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faceuser -d facesaas"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  face_uploads:
+  postgres_data:
+  redis_data:
