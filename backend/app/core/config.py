@@ -3,7 +3,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://faceuser:facepass@postgres:5432/facesaas"
+    DATABASE_URL: str = "postgresql+asyncpg://faceuser:facepass@postgres:5432/facesaas"
     REDIS_URL: str = "redis://redis:6379"
     SECRET_KEY: str = "super-secret-key-change-in-production"
     API_KEY: str = "your-api-key"

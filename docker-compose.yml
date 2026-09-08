@@ -19,7 +19,7 @@ services:
     expose:
       - "8000"
     environment:
-      - DATABASE_URL=postgresql://faceuser:facepass@postgres:5432/facesaas
+      - DATABASE_URL=postgresql+asyncpg://faceuser:facepass@postgres:5432/facesaas
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:-super-secret-key-change-in-production}
       - UPLOAD_DIR=/app/uploads
