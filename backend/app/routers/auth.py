@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+import uuid
 
 from app.core.database import get_db, User, Tenant
 from app.core.security import verify_password, get_password_hash, create_access_token
@@ -36,7 +37,16 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
     tenant = result.scalar_one_or_none()
 
     if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        tenant = Tenant(
+            name=req.tenant_slug,
+            slug=req.tenant_slug,
+            api_key=f"sk-{req.tenant_slug}-{str(uuid.uuid4())[:8]}",
+            plan="starter",
+            max_users="100",
+            is_active="true"
+        )
+        db.add(tenant)
+        await db.flush()
 
     result = await db.execute(select(User).where(User.email == req.email))
     existing = result.scalar_one_or_none()
@@ -49,7 +59,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
         username=req.username,
         email=req.email,
         hashed_password=get_password_hash(req.password),
-        role="user"
+        role="admin"
     )
     db.add(user)
     await db.commit()
