@@ -9,7 +9,7 @@ from app.core.database import get_db, User, Tenant
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.deps import get_current_user
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 
 class RegisterRequest(BaseModel):

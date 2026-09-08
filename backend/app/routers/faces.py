@@ -10,7 +10,7 @@ from app.core.deps import get_current_user, get_current_tenant
 from app.services.face_engine import face_engine
 from app.services.storage import save_upload, delete_file
 
-router = APIRouter(prefix="/faces", tags=["faces"])
+router = APIRouter(tags=["faces"])
 
 
 class FaceResponse(BaseModel):
